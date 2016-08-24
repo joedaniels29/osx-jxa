@@ -30,6 +30,7 @@ stdio = stdio || requireStdio();
 //========================Omnifocus Routine======================================
 
 var cwd = "/Users/Joe/Projects/Mine/osx-jxa/";
+var npm = cwd + "node_modules/";
 var {TimeTask, RunLoop, runEvery} = require(cwd + "OFRunLoop.js");
 var {cleanOutOldChecklists} = require(cwd + "OmnifocusRoutine.js");
 
