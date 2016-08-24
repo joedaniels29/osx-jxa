@@ -25,42 +25,34 @@ if (require == undefined) {
 var _ = requireLibrary("lodash.js");
 var moment = requireLibrary("moment-with-locales.js");
 
+stdio = stdio || requireStdio();
+
 //========================Omnifocus Routine======================================
-exports.cleanOutOldChecklists = function () {
+
+var cwd = "/Users/Joe/Projects/Mine/osx-jxa/";
+var {TimeTask, RunLoop, runEvery} = require(cwd + "OFRunLoop.js");
+var {cleanOutOldChecklists} = require(cwd + "OmnifocusRoutine.js");
+
+var rl = new RunLoop();
+
+rl.addTasks(
+    runEvery(moment().duration(30, "minutes"),
+        {
+            task: function () {
+                stdio.alert("hai Gurl");
+            }
+        }, {
+            shift: moment().duration(5, "minutes")
+        })
+);
+
+rl.addTask(runEvery(moment().duration(6, "hours"), {
+    task: cleanOutOldChecklists
+}));
+
+rl.run();
 
 
-    var of = of || Application('OmniFocus');
-    var ofDoc = ofDoc || of.defaultDocument;
-
-    function dueAWhileAgo(obj) {
-        return obj.dueDate < moment().subtract(3, "hours").toDate();
-    }
-
-    function isActive(obj) {
-        return obj.status() == "active";
-    }
-
-    function hasMethod(obj, method) {
-        return obj.note() == "active";
-    }
-
-    var completed = false;
-
-    var projects = ofDoc.folders.whose({"name": "Checklists"}).at(0).projects.whose({completed})();
-    _.each(projects, function (project) {
-        if ((dueAWhileAgo(obj))
-            && isActive(obj)) {
-            obj.completed = true
-        }
-    });
-
-};
-// var projects = ofDoc.flattenedProjects.whose({completed})();
-// _.each(projects, function (project) {
-//     if (dueAWhileAgo(project) && obj.status() == "active") obj.completed = true;
-// });
 
 
-//     of_qe = of.quickEntry;
-//
-//debugger;
+
