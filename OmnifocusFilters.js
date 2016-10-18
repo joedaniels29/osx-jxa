@@ -24,33 +24,11 @@ if (require == undefined) {
 }
 var _ = requireLibrary("lodash.js");
 var moment = requireLibrary("moment-with-locales.js");
-requireLibrary("moment-range.js");
 
-var stdio = stdio || requireStdio();
-//========================Omnifocus Routine======================================
+stdio = stdio || requireStdio();
 
-var cwd = "/Users/Joe/Projects/Mine/osx-jxa/";
-var npm = cwd + "node_modules/";
-var {TimeTask, RunLoop, runEvery} = require(cwd + "OFRunLoop.js");
-var filters = require(cwd + "OmnifocusFilters.js");
-var {cleanOutOldChecklists} = require(cwd + "OmnifocusRoutine.js");
+//========================OmnifocusFilters Routine======================================
 
-var rl = new RunLoop();
-
-debugger
-rl.addTasks(
-    runEvery(moment.duration({ "minutes":3}),
-        {
-            task: function () {
-                stdio.alert("hai Gurl");
-            }
-        }, {
-            shift: moment.duration({ "minutes":5})
-        } )
-);
-
-rl.addTask(runEvery(moment.duration({ "hours":6}), {
-    task: cleanOutOldChecklists
-}));
-
-rl.run();
+exports.run = function (argv) {
+    console.log(JSON.stringify(argv))
+}

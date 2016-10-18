@@ -24,14 +24,77 @@ if (require == undefined) {
 }
 var _ = requireLibrary("lodash.js");
 var moment = requireLibrary("moment-with-locales.js");
-
+requireLibrary("moment-range.js");
 //========================Omnifocus Routine======================================
+
+
+var cwd = "/Users/Joe/Projects/Mine/osx-jxa/";
+var npm = cwd + "node_modules/";
+var {TimeTask, RunLoop, runEvery} = require(cwd + "OFRunLoop.js");
+var filters = require(cwd + "OmnifocusFilters.js");
+var {OF, OFDoc} = require(cwd + "OFConstants.js");
+
+
+var evalWithinContext = function (context, code) {
+    (function (code) {
+        eval(code);
+    }).apply(context, [code]);
+};
+
+
+const actions = {
+    deferMove: function(/*...args*/){
+        if (!arguments.length) {
+
+        }
+
+
+        this.completed = true
+
+    },
+    autoComplete: function(x /*,...args*/){
+        if (arguments.length) {
+
+
+        }
+
+
+        x.completed = true
+
+    },
+
+
+    onlyIf: function(arg){
+
+        return arg
+    },
+    unless: function(/*...args*/){
+        return !onlyIf.apply(this, arguments)
+    },
+    all: function(/*...args*/){
+        _.reduce(args, function (x, y) {
+            return x && y
+        })
+    },
+    any: function(/*...args*/){
+        _.reduce(args, function (x, y) {
+            return x || y
+        })
+    },
+    iAm: function(/*...args*/){
+        _.reduce(args, function (x, y) {
+            return x && y
+        })
+    },
+
+};
+
+
+function EvaluateNote() {
+
+
+}
 exports.cleanOutOldChecklists = function () {
-
-
-    var of = of || Application('OmniFocus');
-    var ofDoc = ofDoc || of.defaultDocument;
-
     function dueAWhileAgo(obj) {
         return obj.dueDate < moment().subtract(3, "hours").toDate();
     }
@@ -55,6 +118,20 @@ exports.cleanOutOldChecklists = function () {
     });
 
 };
+function commands(obj) {
+    return _.map(_.filter(obj.note().split("\n"), function (x) {
+        x.charAt(0) == "&"
+    }), function (x) {
+        return x.substr(1);
+    });
+}
+exports.evaluateNote = function (obj) {
+    _.each(commands(obj), function (x){
+        evalWithinContext(actions, x);
+    });
+};
+
+
 // var projects = ofDoc.flattenedProjects.whose({completed})();
 // _.each(projects, function (project) {
 //     if (dueAWhileAgo(project) && obj.status() == "active") obj.completed = true;

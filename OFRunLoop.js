@@ -22,7 +22,7 @@ if (require == undefined) {
         return Object.assign(requireLibrary("stdio"))
     }
 }
-var _ = requireLibrary("lodash.js");
+var { _ } = requireLibrary("lodash.js");
 var moment = requireLibrary("moment-with-locales.js");
 var momentRange = requireLibrary("moment-range.js");
 
@@ -30,30 +30,31 @@ stdio = stdio || requireStdio();
 //========================Omnifocus Routine======================================
 
 
-var epochBegin = moment().startOf('year');
-var epochEnd = moment(epochBegin).add("year", 1);
+var epochBegin = moment().startOf('month');
+var epochEnd = moment(epochBegin).add("month", 1);
 function epsilonClose(time){
-    momemnt(time).diff(moment(),"minutes") < 15
+    return Math.abs(moment(time).diff(moment(),"minutes") < 15);
 }
 
 exports.TimeTask =  function (properties) {
-    noop = function () {
-        stdio.alert("ohai")
+    var noop = function () {
+        stdio.alert("ohai");
     };
     this.time = moment().startOf("day").toDate();
-    this.task = noop;
+    this.run = noop;
     this.enabled = true;
-    this.getInfo = getAppleInfo;
     for (k in properties) this[k] = properties[k];
 };
 
 exports.runEvery = function(duration, properties, options){
-    var range = moment.range(epochBegin, end);
+    var range = moment.range(epochBegin, epochEnd);
     var ret = [];
 
-    range1.by(duration, function(m) {
-        var task = exports.TimeTask(properties);
-        task.time = moment(m).add(options && options.shift || 0).toDate();
+    range.by(duration, function(m) {
+        var task = new exports.TimeTask(properties);
+        task.time = (options && options.shift ? moment(m)
+            .add(options.shift) : moment(m))
+            .toDate();
         ret.push(task);
     });
 
@@ -62,16 +63,16 @@ exports.runEvery = function(duration, properties, options){
 exports.RunLoop =  function RunLoop(properties){
     this.tasks = [];
     this.addTask = function(t){this.tasks.push(t)};
-    this.addTasks = function(t){this.tasks.concat(t)};
+    this.addTasks = function(t){this.tasks = this.tasks.concat(t)};
 
     this.run = function(){
-        _.each(this.tasks, function(task){
+        debugger;
+        _.forEach(this.tasks, function(task){
             if (!epsilonClose(task.time)) return;
             if (!task.enabled) return;
-            task.run()
+            task.task()
         });
     };
 
     for (k in properties) this[k] = properties[k];
 };
-
