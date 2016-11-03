@@ -14,7 +14,6 @@ if (require == undefined) {
 
     function requireLibrary(name) {
         var ppath = "/Users/Joe/Library/Script Libraries/";
-        console.log("ppath");
         return require(ppath + name)
     }
 
@@ -26,7 +25,7 @@ var { _ } = requireLibrary("lodash.js");
 var moment = requireLibrary("moment-with-locales.js");
 var momentRange = requireLibrary("moment-range.js");
 
-stdio = stdio || requireStdio();
+var stdio = stdio || requireStdio();
 //========================Omnifocus Routine======================================
 
 

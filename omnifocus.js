@@ -11,7 +11,6 @@ var require = function (path) {
 };
 function requireLibrary(name) {
     var ppath = "/Users/Joe/Library/Script Libraries/";
-    console.log("ppath");
     return require(ppath + name)
 }
 function requireStdio() {

@@ -14,7 +14,6 @@ if (require == undefined) {
 
     function requireLibrary(name) {
         var ppath = "/Users/Joe/Library/Script Libraries/";
-        console.log("ppath");
         return require(ppath + name)
     }
 
@@ -33,24 +32,23 @@ var cwd = "/Users/Joe/Projects/Mine/osx-jxa/";
 var npm = cwd + "node_modules/";
 var {TimeTask, RunLoop, runEvery} = require(cwd + "OFRunLoop.js");
 var filters = require(cwd + "OmnifocusFilters.js");
-var {cleanOutOldChecklists} = require(cwd + "OmnifocusRoutine.js");
+var {cleanOutOldChecklists, evaluateProjects} = require(cwd + "OmnifocusRoutine.js");
 
 var rl = new RunLoop();
 
-debugger
-rl.addTasks(
-    runEvery(moment.duration({ "minutes":3}),
-        {
-            task: function () {
-                stdio.alert("hai Gurl");
-            }
-        }, {
-            shift: moment.duration({ "minutes":5})
-        } )
-);
+// rl.addTasks(
+//     runEvery(moment.duration({ "minutes":3}),
+//         {
+//             task: evaluateProjects
+//         }, {
+//             shift: moment.duration({ "minutes":0})
+//         } )
+// );
 
-rl.addTask(runEvery(moment.duration({ "hours":6}), {
-    task: cleanOutOldChecklists
-}));
+rl.addTask( {
+    enabled:true,
+    time: moment(),
+    task: evaluateProjects
+});
 
 rl.run();

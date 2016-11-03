@@ -14,7 +14,6 @@ if (require == undefined) {
 
     function requireLibrary(name) {
         var ppath = "/Users/Joe/Library/Script Libraries/";
-        console.log("ppath");
         return require(ppath + name)
     }
 
@@ -35,104 +34,152 @@ var filters = require(cwd + "OmnifocusFilters.js");
 var {OF, OFDoc} = require(cwd + "OFConstants.js");
 
 
-var evalWithinContext = function (context, code) {
-    (function (code) {
-        eval(code);
-    }).apply(context, [code]);
-};
-
-
-const actions = {
-    deferMove: function(/*...args*/){
-        if (!arguments.length) {
-
-        }
-
-
-        this.completed = true
-
-    },
-    autoComplete: function(x /*,...args*/){
-        if (arguments.length) {
-
-
-        }
-
-
-        x.completed = true
-
-    },
-
-
-    onlyIf: function(arg){
-
-        return arg
-    },
-    unless: function(/*...args*/){
-        return !onlyIf.apply(this, arguments)
-    },
-    all: function(/*...args*/){
-        _.reduce(args, function (x, y) {
-            return x && y
-        })
-    },
-    any: function(/*...args*/){
-        _.reduce(args, function (x, y) {
-            return x || y
-        })
-    },
-    iAm: function(/*...args*/){
-        _.reduce(args, function (x, y) {
-            return x && y
-        })
-    },
-
-};
-
-
-function EvaluateNote() {
-
-
-}
-exports.cleanOutOldChecklists = function () {
-    function dueAWhileAgo(obj) {
-        return obj.dueDate < moment().subtract(3, "hours").toDate();
+const evaluator = (function () {
+    function pastDue() {
+        return object.dueDate() < moment().subtract(3, "hours").toDate();
     }
 
     function isActive(obj) {
         return obj.status() == "active";
     }
 
-    function hasMethod(obj, method) {
-        return obj.note() == "active";
-    }
+    const deferMove = function (/*...args*/) {
+        if (!arguments.length) {
 
-    var completed = false;
-
-    var projects = ofDoc.folders.whose({"name": "Checklists"}).at(0).projects.whose({completed})();
-    _.each(projects, function (project) {
-        if ((dueAWhileAgo(obj))
-            && isActive(obj)) {
-            obj.completed = true
         }
-    });
 
+
+        completed = true
+
+    };
+    let autoComplete = function (...args) {
+        if ((pastDue(object))
+            && isActive(object)) {
+        // if (args.length) {
+        // }
+        // console.log("ohai" + code);
+        object.completed = true;
+            affect = true;
+        }
+    };
+
+    const onlyIf = function (arg) {
+        return arg;
+    };
+    const toProject = function (arg) {
+        return arg;
+    };
+    const unless = function (...args) {
+        return !onlyIf.apply(this, arguments);
+    };
+    const all = function (...args) {
+        _.reduce(args, function (x, y) {
+            return x && y;
+        })
+    };
+
+    const pastDueChilderen = function(x){
+        const w = x || object;
+        var kids = [];
+        var childeren = object.tasks;
+        for (var i = 0; i < childeren.length; i++) {
+            var obj = childeren[i];
+            console.log(obj.title())
+        }
+
+    };
+    const recurse = function () {
+        // console.log(object.name());
+        var tmp = object;
+        _.each(tmp.tasks, (x) =>{
+            exports.evaluateNote(x)
+        });
+        object = tmp
+    };
+    const redate = function (cond, ...args) {
+        // console.log(object.name());
+        if (cond === undefined || cond) {
+            // const overdues = pastDueChilderen();
+            console.log("Got here!!");
+            console.log(object.name());
+            var kids = object.tasks();
+            var cursor = moment();
+            for (var i = 0; i < kids.length; i++ && cursor.add(1, "day")) {
+                var obj = kids[i];
+                obj.dueDate = moment(cursor).toDate();
+                console.log(obj.name())
+            }
+        }
+    };
+    const or = function (...args) {
+        _.reduce(args, function (x, y) {
+            return x || y;
+        })
+    };
+    const any = function (...args) {
+        _.reduce(args, function (x, y) {
+            return x || y
+        })
+    };
+    const iAm = function (...args) {
+        _.reduce(args, function (x, y) {
+            return x && y
+        })
+    };
+    const at = function (...args) {
+        _.reduce(args, function (x, y) {
+            return x && y
+        })
+    };
+    var object = null;
+    const working = true;
+    const home = !(working);
+    const night = moment().hour() > 22 ;
+    const evening = moment().hour() > 17 && moment().hour() < 22 ;
+    // const evening =
+    const driving = false;
+    const when = at;
+    return function (dis, code) {
+        object = dis;
+        (function (code) {
+            eval(code);
+        }).apply(this, [code]);
+    };
+})();
+
+
+exports.cleanOutOldChecklists = function () {
+
+};
+// exports.projects = OFDoc.folders.whose({"name": "Checklists"}).at(0).projects.whose({completed:false})();
+var affect = false;
+exports.evaluateProjects = function () {
+    affect = false;
+    var projects = OFDoc.flattenedProjects.whose({completed: false})();
+    // var projects = OFDoc.folders.whose({"name": "Checklists"}).at(0).projects.whose({completed: false})();
+    _.each(projects, function (project) {
+        exports.evaluateNote(project)
+    });
+    if (affect)  evaluateProjects();
+    // OFDoc.synchronize()
 };
 function commands(obj) {
     return _.map(_.filter(obj.note().split("\n"), function (x) {
-        x.charAt(0) == "&"
+        return x.charAt(0) == "&"
     }), function (x) {
         return x.substr(1);
     });
 }
 exports.evaluateNote = function (obj) {
-    _.each(commands(obj), function (x){
-        evalWithinContext(actions, x);
+    _.each(commands(obj), function (x) {
+        // try{
+        evaluator(obj, x);
+        // }catch (e){ console.log(e); }
     });
 };
 
 
-// var projects = ofDoc.flattenedProjects.whose({completed})();
+// var projects = OFDoc.flattenedProjects.whose({completed})();
 // _.each(projects, function (project) {
 //     if (dueAWhileAgo(project) && obj.status() == "active") obj.completed = true;
 // });
