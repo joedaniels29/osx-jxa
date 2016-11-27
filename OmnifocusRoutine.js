@@ -13,7 +13,7 @@ if (require == undefined) {
     };
 
     function requireLibrary(name) {
-        var ppath = "/Users/Joe/Library/Script Libraries/";
+        var ppath = "/Users/joe/Projects/Mine/osx-jxa-stdlib/";
         return require(ppath + name)
     }
 

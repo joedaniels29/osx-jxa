@@ -3,7 +3,7 @@
 //refer to https://github.com/dtinth/JXA-Cookbook
 
 
-//ObjC.import('stdlib');
+//ObjC.import('stdlib/');
 //ObjC.import('AppKit');
 
 //get application:

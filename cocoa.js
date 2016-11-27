@@ -29,5 +29,5 @@ debugger;
 // nil = $()
 //
 //
-// ObjC.import('stdlib')
+// ObjC.import('stdlib/')
 // $.exit(123)

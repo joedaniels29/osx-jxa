@@ -13,7 +13,7 @@ if (require == undefined) {
     };
 
     function requireLibrary(name) {
-        var ppath = "/Users/Joe/Library/Script Libraries/";
+        var ppath = "/Users/joe/Projects/Mine/osx-jxa-stdlib/";
         return require(ppath + name)
     }
 
@@ -34,3 +34,4 @@ var npm = cwd + "node_modules/";
 exports.OF = Application('OmniFocus');
 exports.OF.includeStandardAdditions = true;
 exports.OFDoc = exports.OF.defaultDocument;
+export default exports;

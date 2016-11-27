@@ -10,7 +10,7 @@ var require = function (path) {
     return module.exports
 };
 function requireLibrary(name) {
-    var ppath = "/Users/Joe/Library/Script Libraries/";
+    var ppath = "/Users/joe/Projects/Mine/osx-jxa-stdlib/";
     return require(ppath + name)
 }
 function requireStdio() {
