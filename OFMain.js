@@ -45,8 +45,8 @@ var rl = new RunLoop();
 //         } )
 // );
 
-rl.addTask( {
-    enabled:true,
+rl.addTask({
+    enabled: true,
     time: moment(),
     task: evaluateProjects
 });

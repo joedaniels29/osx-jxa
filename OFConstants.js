@@ -34,4 +34,3 @@ var npm = cwd + "node_modules/";
 exports.OF = Application('OmniFocus');
 exports.OF.includeStandardAdditions = true;
 exports.OFDoc = exports.OF.defaultDocument;
-export default exports;

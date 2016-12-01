@@ -35,6 +35,8 @@ var {OF, OFDoc} = require(cwd + "OFConstants.js");
 
 
 const evaluator = (function () {
+    const defaultAttrs = {completed: false};
+
     function pastDue() {
         return object.dueDate() < moment().subtract(3, "hours").toDate();
     }
@@ -45,28 +47,47 @@ const evaluator = (function () {
 
     const deferMove = function (/*...args*/) {
         if (!arguments.length) {
+            console.error("needs arg")
+        }
+        var kids = [];
+        var childeren = object.tasks;
+        for (var i = 0; i < childeren.length; i++) {
+            var obj = childeren[i];
+            debugger;
+            var duplicate = obj.duplicate();
 
+            break;
         }
 
 
-        completed = true
+        // completed = true
 
     };
-    let autoComplete = function (...args) {
+
+    function project(attrs) {
+        const at = Object.assign({}, defaultAttrs, attrs);
+        return OFDoc.flattenedProjects.whose(at)();
+    }
+
+    const toProject = function (name) {
+        return project({name});
+    };
+
+
+    var autoComplete = function (...args) {
         if ((pastDue(object))
             && isActive(object)) {
-        // if (args.length) {
-        // }
-        // console.log("ohai" + code);
-        object.completed = true;
+            // if (args.length) {
+            // }
+            // console.log("ohai" + code);
+            object.completed = true;
             affect = true;
         }
+
     };
 
+
     const onlyIf = function (arg) {
-        return arg;
-    };
-    const toProject = function (arg) {
         return arg;
     };
     const unless = function (...args) {
@@ -78,7 +99,7 @@ const evaluator = (function () {
         })
     };
 
-    const pastDueChilderen = function(x){
+    const pastDueChilderen = function (x) {
         const w = x || object;
         var kids = [];
         var childeren = object.tasks;
@@ -91,7 +112,7 @@ const evaluator = (function () {
     const recurse = function () {
         // console.log(object.name());
         var tmp = object;
-        _.each(tmp.tasks, (x) =>{
+        _.each(tmp.tasks, (x) => {
             exports.evaluateNote(x)
         });
         object = tmp
@@ -111,31 +132,32 @@ const evaluator = (function () {
             }
         }
     };
+    const keepIf = function (...args) {
+
+
+    };
     const or = function (...args) {
         _.reduce(args, function (x, y) {
             return x || y;
         })
     };
     const any = function (...args) {
-        _.reduce(args, function (x, y) {
-            return x || y
-        })
+        _.reduce(args, (x, y) => x || y)
     };
     const iAm = function (...args) {
-        _.reduce(args, function (x, y) {
-            return x && y
-        })
+        _.reduce(args, (x, y)  => x && y)
     };
     const at = function (...args) {
-        _.reduce(args, function (x, y) {
+        _.reduce(
+            args, function (x, y) {
             return x && y
         })
     };
     var object = null;
     const working = true;
     const home = !(working);
-    const night = moment().hour() > 22 ;
-    const evening = moment().hour() > 17 && moment().hour() < 22 ;
+    const night = moment().hour() > 22;
+    const evening = moment().hour() > 17 && moment().hour() < 22;
     // const evening =
     const driving = false;
     const when = at;
@@ -146,7 +168,6 @@ const evaluator = (function () {
         }).apply(this, [code]);
     };
 })();
-
 
 exports.cleanOutOldChecklists = function () {
 
@@ -160,7 +181,7 @@ exports.evaluateProjects = function () {
     _.each(projects, function (project) {
         exports.evaluateNote(project)
     });
-    if (affect)  evaluateProjects();
+    if (affect) evaluateProjects();
     // OFDoc.synchronize()
 };
 function commands(obj) {
