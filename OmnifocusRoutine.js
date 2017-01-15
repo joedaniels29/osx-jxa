@@ -46,18 +46,18 @@ const evaluator = (function () {
     }
 
     const deferMove = function (/*...args*/) {
-        if (!arguments.length) {
-            console.error("needs arg")
-        }
-        var kids = [];
-        var childeren = object.tasks;
-        for (var i = 0; i < childeren.length; i++) {
-            var obj = childeren[i];
-            debugger;
-            var duplicate = obj.duplicate();
-
-            break;
-        }
+        // if (!arguments.length) {
+        //     console.error("needs arg")
+        // }
+        // var kids = [];
+        // var childeren = object.tasks;
+        // for (var i = 0; i < childeren.length; i++) {
+        //     var obj = childeren[i];
+        //     // debugger;
+        //     // var duplicate = obj.duplicate();
+        //
+        //     break;
+        // }
 
 
         // completed = true
@@ -110,6 +110,7 @@ const evaluator = (function () {
 
     };
     const recurse = function () {
+        // return
         // console.log(object.name());
         var tmp = object;
         _.each(tmp.tasks, (x) => {
@@ -118,6 +119,7 @@ const evaluator = (function () {
         object = tmp
     };
     const redate = function (cond, ...args) {
+        // return
         // console.log(object.name());
         if (cond === undefined || cond) {
             // const overdues = pastDueChilderen();
