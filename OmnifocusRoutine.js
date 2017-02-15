@@ -35,10 +35,17 @@ var {OF, OFDoc} = require(cwd + "OFConstants.js");
 
 
 const evaluator = (function () {
-    const defaultAttrs = {completed: false};
+    let object = null;
+    let ctxt = null;
+    const working = true;
+    const home = !(working);
+    const night = moment().hour() > 22;
+    const evening = moment().hour() > 17 && moment().hour() < 22;
+    // const evening =
+    const driving = false;
 
     function pastDue() {
-        return object.dueDate() < moment().subtract(3, "hours").toDate();
+        return this.object.dueDate() < moment().subtract(3, "hours").toDate();
     }
 
     function isActive(obj) {
@@ -46,146 +53,188 @@ const evaluator = (function () {
     }
 
     const deferMove = function (/*...args*/) {
-        // if (!arguments.length) {
-        //     console.error("needs arg")
-        // }
-        // var kids = [];
-        // var childeren = object.tasks;
-        // for (var i = 0; i < childeren.length; i++) {
-        //     var obj = childeren[i];
-        //     // debugger;
-        //     // var duplicate = obj.duplicate();
-        //
-        //     break;
-        // }
+        if (!arguments.length) {
 
-
-        // completed = true
+        }
 
     };
+    const guardIf = (args) => {
+        const condition = args["onlyIf"] || (args["unless"] && not(args["unless"])) || undefined;
+        if (condition == undefined) return false;
+        return !oif(condition);
+    };
+    const marco = () => {
+        console.log("Oh yas.")
+    };
+    const duration = (d) => moment.duration(d);
 
-    function project(attrs) {
-        const at = Object.assign({}, defaultAttrs, attrs);
-        return OFDoc.flattenedProjects.whose(at)();
-    }
+    // const tomorrow = () => moment("to");
+    const defer = function (options) {
 
-    const toProject = function (name) {
-        return project({name});
+        if (guardIf(options)) {
+            return;
+        } else {
+            let target = object;
+            let {children, to, by, until, redate, cursor, once} = options;
+            if (children) {
+                var cursor = cursor || moment();
+                debugger;
+                return log(any(children(function () {
+                    // debugger;
+                    return defer({to, by, until, redate, cursor, once});
+                })()).length);
+            }
+
+            if (to) { //project
+                // to = typeof to == "function" ? to() : to;
+            } else if (redate && by && cursor) {
+                this.object.dueDate = cursor.add(moment.duration(oif(by))).toDate();
+            }
+            else if (by && this.object.dueDate()) { //duration
+                log("hai by");
+                this.object.dueDate = moment(this.object.dueDate()).add(moment.duration(oif(by))).toDate();
+            } else if (until) { //duration
+                this.object.dueDate = moment(oif(until)).toDate();
+            }
+            // if (options["once"]) target = duplicate(object);
+
+            // if (typeof to == "moment") target.dueDate = to.toDate();
+            // else  target.project = to;
+
+            // if (options["once"]) {
+            //     target.note = target.note() + `#onceId(${target.project.id()})`;
+            //     object.completed = true;
+            // }
+        }
     };
 
-
-    var autoComplete = function (...args) {
+    let autoComplete = function (...args) {
         if ((pastDue(object))
             && isActive(object)) {
             // if (args.length) {
             // }
-            // console.log("ohai" + code);
             object.completed = true;
-            affect = true;
+            ctxt.requiresRecursion = true;
         }
-
     };
 
-
     const onlyIf = function (arg) {
+        return (typeof arg == "function") ? arg() : arg;
+    };
+    const oif = onlyIf;
+    const toProject = function (arg) {
         return arg;
     };
     const unless = function (...args) {
         return !onlyIf.apply(this, arguments);
     };
-    const all = function (...args) {
-        _.reduce(args, function (x, y) {
-            return x && y;
-        })
-    };
-
     const pastDueChilderen = function (x) {
         const w = x || object;
         var kids = [];
         var childeren = object.tasks;
         for (var i = 0; i < childeren.length; i++) {
             var obj = childeren[i];
-            console.log(obj.title())
         }
-
     };
+
     const recurse = function () {
-        // return
-        // console.log(object.name());
         var tmp = object;
         _.each(tmp.tasks, (x) => {
             exports.evaluateNote(x)
         });
         object = tmp
     };
+
+    const children = function (fn) {
+        let tmp = this.object;
+        return () => {
+            return _.map(tmp.tasks(), (x) => {
+                return exports.evaluateFunc(x, fn, ctxt);
+            });
+        }
+    };
+
+
     const redate = function (cond, ...args) {
-        // return
-        // console.log(object.name());
         if (cond === undefined || cond) {
             // const overdues = pastDueChilderen();
-            console.log("Got here!!");
-            console.log(object.name());
             var kids = object.tasks();
             var cursor = moment();
             for (var i = 0; i < kids.length; i++ && cursor.add(1, "day")) {
                 var obj = kids[i];
                 obj.dueDate = moment(cursor).toDate();
-                console.log(obj.name())
             }
         }
     };
-    const keepIf = function (...args) {
-
-
-    };
-    const or = function (...args) {
-        _.reduce(args, function (x, y) {
+    const or = function (args) {
+        return () => _.reduce(args, function (x, y) {
             return x || y;
-        })
+        }, false)
     };
-    const any = function (...args) {
-        _.reduce(args, (x, y) => x || y)
+    const all = function (args) {
+        return () => _.reduce(oif(args), function (x, y) {
+            return oif(x) && oif(y);
+        }, true)
+    };
+    const any = function (args) {
+
+        return () => _.reduce(oif(args), function (x, y) {
+            return oif(x) || oif(y);
+        }, false)
+    };
+    const moreThan = function (n, args) {
+        return () => (_.reduce(oif(args), function (x, y) {
+            return oif(y) ? x + 1 : x;
+        }, 0) > n);
+    };
+    const not = function (not) {
+        return () => !oif(not);
     };
     const iAm = function (...args) {
-        _.reduce(args, (x, y)  => x && y)
-    };
-    const at = function (...args) {
-        _.reduce(
-            args, function (x, y) {
-            return x && y
+        return () => _.reduce(oif(args), function (x, y) {
+            return oif(x) && oif(y);
         })
     };
-    var object = null;
-    const working = true;
-    const home = !(working);
-    const night = moment().hour() > 22;
-    const evening = moment().hour() > 17 && moment().hour() < 22;
-    // const evening =
-    const driving = false;
+    const at = function (...args) {
+        return () => _.reduce(args, function (x, y) {
+            return oif(x) && oif(y);
+        })
+    };
     const when = at;
-    return function (dis, code) {
-        object = dis;
-        (function (code) {
-            eval(code);
-        }).apply(this, [code]);
+    const log = console.log;
+
+    return function (dis, code, ctxt) {
+        this.object = dis;
+        this.ctxt = ctxt;
+        if (typeof code == "function") return code.call(this);
+        else return (function (code) {
+            debugger;
+            return eval(code);
+        }).call(this, code);
     };
 })();
+
 
 exports.cleanOutOldChecklists = function () {
 
 };
+function context(x) {
+    return {
+        me: x,
+        requiresRecursion: false,
+        //will call the callback many times potentially. basically a do while on requresRecursion.
+        evaluate: function (me, fn) {
+            let returnable = null;
+            do {
+                this.requiresRecursion = false;
+                returnable = fn();
+            } while (this.me == me && this.requiresRecursion);
+            return returnable;
+
+        }
+    }
+}
 // exports.projects = OFDoc.folders.whose({"name": "Checklists"}).at(0).projects.whose({completed:false})();
-var affect = false;
-exports.evaluateProjects = function () {
-    affect = false;
-    var projects = OFDoc.flattenedProjects.whose({completed: false})();
-    // var projects = OFDoc.folders.whose({"name": "Checklists"}).at(0).projects.whose({completed: false})();
-    _.each(projects, function (project) {
-        exports.evaluateNote(project)
-    });
-    if (affect) evaluateProjects();
-    // OFDoc.synchronize()
-};
 function commands(obj) {
     return _.map(_.filter(obj.note().split("\n"), function (x) {
         return x.charAt(0) == "&"
@@ -193,14 +242,39 @@ function commands(obj) {
         return x.substr(1);
     });
 }
-exports.evaluateNote = function (obj) {
-    _.each(commands(obj), function (x) {
-        // try{
-        evaluator(obj, x);
-        // }catch (e){ console.log(e); }
+
+
+exports.evaluateProjects = function (ctxt) {
+    (ctxt || context(this)).evaluate(this, function (ctxt) {
+        var projects = OFDoc.flattenedProjects.whose({completed: false})();
+        // var projects = OFDoc.folders.whose({"name": "Checklists"}).at(0).projects.whose({completed: false})();
+        _.each(projects, function (project) {
+            exports.evaluateNote(project)
+        });
     });
 };
 
+
+exports.evaluateProject = function (project, ctxt) {
+    (ctxt || context(this)).evaluate(this, function (ctxt) {
+        return exports.evaluateNote(project);
+    });
+};
+
+exports.evaluateNote = function (obj, ctxt) {
+    (ctxt || context(this)).evaluate(this, function (ctxt) {
+        _.each(commands(obj), function (x) {
+            // try{
+            return new evaluator(obj, x, ctxt);
+            // }catch (e){ console.log(e); }
+        });
+    });
+};
+exports.evaluateFunc = function (obj, func, ctxt) {
+    return (ctxt || context(this)).evaluate(this, function (ctxt) {
+        return new evaluator(obj, func, ctxt);
+    });
+};
 
 // var projects = OFDoc.flattenedProjects.whose({completed})();
 // _.each(projects, function (project) {

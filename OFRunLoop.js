@@ -65,7 +65,7 @@ exports.RunLoop =  function RunLoop(properties){
     this.addTasks = function(t){this.tasks = this.tasks.concat(t)};
 
     this.run = function(){
-        debugger;
+        // debugger;
         _.forEach(this.tasks, function(task){
             if (!epsilonClose(task.time)) return;
             if (!task.enabled) return;

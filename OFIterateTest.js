@@ -32,7 +32,8 @@ var cwd = "/Users/Joe/Projects/Mine/osx-jxa/";
 var npm = cwd + "node_modules/";
 var {TimeTask, RunLoop, runEvery} = require(cwd + "OFRunLoop.js");
 var filters = require(cwd + "OmnifocusFilters.js");
-var {cleanOutOldChecklists, evaluateProjects} = require(cwd + "OmnifocusRoutine.js");
+var {evaluateProject} = require(cwd + "OmnifocusRoutine.js");
+var {OF, OFDoc} = require(cwd + "OFConstants.js");
 
 var rl = new RunLoop();
 
@@ -48,7 +49,13 @@ var rl = new RunLoop();
 rl.addTask( {
     enabled:true,
     time: moment(),
-    task: evaluateProjects
+    task: () => {
+        debugger;
+        // var projects = OFDoc.folders.whose({"name": "Checklists"}).at(0).projects.whose({completed: false})();
+        //evaluateProjects(projects[0])
+        let project = OFDoc.projects.whose({"name": "TestProject"})()[0];
+        evaluateProject(project)
+    }
 });
 
 rl.run();
