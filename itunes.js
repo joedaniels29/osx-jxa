@@ -2,6 +2,6 @@
 
 
 //itunes?
-Application('iTunes').play()
-Application('iTunes').pause()
-Application('iTunes').stop()
+Application('iTunes').play();
+Application('iTunes').pause();
+Application('iTunes').stop();

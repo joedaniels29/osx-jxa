@@ -105,9 +105,7 @@ const Evaluator = (function () {
     };
     // const tomorrow = () => moment("to");
     this.defer = function (options) {
-        if (this.guardIf(options)) {
-            return;
-        } else {
+        if (!this.guardIf(options)) {
             let target = object;
             let {children, descendents, activeChildren, to, by, until, redate, cursor, once} = options;
             descendents = descendents || children || activeChildren;

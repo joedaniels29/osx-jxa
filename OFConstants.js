@@ -1,6 +1,6 @@
 //========================================================================
-if (require == undefined) {
-    function require(path) {
+if (require === undefined) {
+    var require = function (path) {
         var fm = $.NSFileManager.defaultManager;
         path = path.toString();
         path = path.endsWith(".js") ? path : path + ".js";
@@ -9,17 +9,17 @@ if (require == undefined) {
         var module = {exports: {}};
         var exports = module.exports;
         eval(ObjC.unwrap(contents));
-        return module.exports
+        return module.exports;
+    };
+    function requireLibrary(name) {
+        var ppath = "/Users/Joe/Library/Script Libraries/";
+        console.log("ppath");
+        return require(ppath + name);
+    }
+    function requireStdio() {
+        return Object.assign(requireLibrary("stdio"));
     };
 
-    function requireLibrary(name) {
-        var ppath = "/Users/joe/Projects/Mine/osx-jxa-stdlib/";
-        return require(ppath + name)
-    }
-
-    function requireStdio() {
-        return Object.assign(requireLibrary("stdio"))
-    }
 }
 var _ = requireLibrary("lodash.js");
 var moment = requireLibrary("moment-with-locales.js");
