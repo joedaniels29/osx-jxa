@@ -33,6 +33,14 @@ var {TimeTask, RunLoop, runEvery} = require(cwd + "OFRunLoop.js");
 var filters = require(cwd + "OmnifocusFilters.js");
 var {OF, OFDoc} = require(cwd + "OFConstants.js");
 
+var EVAL_CHAR;
+BETA = true;
+if (BETA) {
+    EVAL_CHAR = "@";
+} else {
+    EVAL_CHAR = "#";
+
+}
 
 const Evaluator = (function () {
     let object = null;
@@ -73,10 +81,10 @@ const Evaluator = (function () {
     this.specification = function () {
         return {
             name: this.object.name,
-            dueDate: this.object.dueDate,
+            dueDate: this.object.dueDate(),
             note: this.object.note(),
             deferDate: this.object.deferDate,
-            completed: this.object.completed,
+            completed: this.object.completed(),
             // estimatedMinutes: this.object.estimatedMinutes()
         };
     };
@@ -91,45 +99,75 @@ const Evaluator = (function () {
         };
     };
     this.duplication = function () {
+
         return OF.Task(this.specification());
     };
     this.duplicateAndFetch = function (options) {
-        let {to, context} = options;
-        if (to){
+        let {to, ofcontext} = options;
+        if (to) {
             to.tasks.push(this.duplication());
             return to.tasks.whose(this.lightSpecification()).at(0);
-        } if (context){
+        }
+        if (ofcontext) {
             //eh do it later.
         }
 
+    };
+    this.handlingDuplication = function (options, body) {
+        if (options.once || options.to) {
+            var d = this.withDuplicate(options, body);
+            this.object.completed = true;
+            return d;
+        } else {
+            return body.call(this);
+        }
+
+    };
+    this.remove = function () {
+    };
+    this.withDuplicate = function (options, body) {
+        const duplicate = this.duplicateAndFetch(options);
+        if (typeof body == "function")  exports.evaluateFunc(duplicate, body, ctxt);
+        if (options["once"]) {
+            debugger;
+            duplicate.note = duplicate.note() + evaluable("remove", {oid: duplicate.id()});
+            // duplicate.note.insert("asdf");// duplicate.note() + "yas";//evaluable(this.remove.name, {oid: duplicate.id()});
+        }
+        return duplicate
     };
     // const tomorrow = () => moment("to");
     this.defer = function (options) {
         if (!this.guardIf(options)) {
             let target = object;
-            let {children, descendents, activeChildren, to, by, until, redate, cursor, once} = options;
+            let {descendents, children, activeChildren} = options;
+
+            var passableOptions = {};
+            for (let k in options) if (!{descendents, children, activeChildren}[k]) passableOptions[k] = options[k];
+
+            let {to, by, until, redate, cursor, once} = passableOptions;
+
             descendents = descendents || children || activeChildren;
             if (descendents) {
+                //the notion of a cursor only really makes sense if you are working with a list of things.
                 cursor = cursor || moment();
                 //debugger;
                 return log(this.any(descendents.call(this, function () {
-                    return this.defer({to, by, until, redate, cursor, once});
+                    return this.defer(passableOptions);
                 })()).length);
             }
-            if (to) { //project
-                log("new thing!! :: " + this.duplicateAndFetch({to}).id());
-                // to.tasks.push(this.duplication());
-            } else if (redate && by && cursor) {
-                this.object.dueDate = cursor.add(moment.duration(oif(by))).toDate();
-            }
-            else if (by && this.object.dueDate()) { //duration
-                log("hai by");
-                this.object.dueDate = moment(this.object.dueDate()).add(moment.duration(oif(by))).toDate();
-            } else if (until) { //duration
-                this.object.dueDate = moment(oif(until)).toDate();
-            }
-            // if (options["once"]) target = duplicate(object);
+            this.handlingDuplication(passableOptions, function () {
+                //to is handled in the duplicator.
+                if (redate && by && cursor) {
+                    this.object.dueDate = cursor.add(moment.duration(oif(by))).toDate();
 
+                }
+                else if (by && this.object.dueDate()) { //duration
+                    this.object.dueDate = moment(this.object.dueDate()).add(moment.duration(oif(by))).toDate();
+                } else if (until) { //duration
+                    this.object.dueDate = moment(oif(until)).toDate();
+                }
+            });
+            // if (options["once"]) target = duplicate(object);
             // if (typeof to == "moment") target.dueDate = to.toDate();
             // else  target.project = to;
 
@@ -271,10 +309,31 @@ function context(x) {
         }
     }
 }
+
+function toDry(it) {
+    switch (typeof it) {
+        case "string":
+            return it;
+        case "function":
+            return it.name;
+        case "number":
+            return String(it);
+        case "object":
+            return JSON.stringify(it);
+        default:
+            return it;
+    }
+
+}
+function evaluable(func, ...args) {
+    return `\n${EVAL_CHAR}${toDry(func)}(${args.map(toDry).join(", ")});`;
+}
+
+
 // exports.projects = OFDoc.folders.whose({"name": "Checklists"}).at(0).projects.whose({completed:false})();
 function commands(obj) {
     return _.map(_.filter(obj.note().split("\n"), function (x) {
-        return x.charAt(0) == "&"
+        return x.charAt(0) == EVAL_CHAR
     }), function (x) {
         return x.substr(1);
     });
