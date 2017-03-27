@@ -35,7 +35,7 @@ const {OF, OFDoc} = require(cwd + "OFConstants.js");
 
 let EVAL_CHAR;
 const kREMOVED = -100;
-BETA = true;
+BETA = false;
 if (BETA) {
     EVAL_CHAR = "@";
 } else {
