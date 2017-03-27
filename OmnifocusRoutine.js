@@ -1,19 +1,19 @@
 //========================================================================
 if (require == undefined) {
     function require(path) {
-        var fm = $.NSFileManager.defaultManager;
+        let fm = $.NSFileManager.defaultManager;
         path = path.toString();
         path = path.endsWith(".js") ? path : path + ".js";
-        var contents = fm.contentsAtPath(path);
+        let contents = fm.contentsAtPath(path);
         contents = $.NSString.alloc.initWithDataEncoding(contents, $.NSUTF8StringEncoding);
-        var module = {exports: {}};
-        var exports = module.exports;
+        let module = {exports: {}};
+        let exports = module.exports;
         eval(ObjC.unwrap(contents));
         return module.exports
     };
 
     function requireLibrary(name) {
-        var ppath = "/Users/joe/Projects/Mine/osx-jxa-stdlib/";
+        let ppath = "/Users/joe/Projects/Mine/osx-jxa-stdlib/";
         return require(ppath + name)
     }
 
@@ -21,19 +21,20 @@ if (require == undefined) {
         return Object.assign(requireLibrary("stdio"))
     }
 }
-var _ = requireLibrary("lodash.js");
-var moment = requireLibrary("moment-with-locales.js");
+const _ = requireLibrary("lodash.js");
+const moment = requireLibrary("moment-with-locales.js");
 requireLibrary("moment-range.js");
 //========================Omnifocus Routine======================================
 
 
-var cwd = "/Users/Joe/Projects/Mine/osx-jxa/";
-var npm = cwd + "node_modules/";
-var {TimeTask, RunLoop, runEvery} = require(cwd + "OFRunLoop.js");
-var filters = require(cwd + "OmnifocusFilters.js");
-var {OF, OFDoc} = require(cwd + "OFConstants.js");
+const cwd = "/Users/Joe/Projects/Mine/osx-jxa/";
+const npm = cwd + "node_modules/";
+const TimeTask, RunLoop, runEvery;
+const filters = require(cwd + "OmnifocusFilters.js");
+const {OF, OFDoc} = require(cwd + "OFConstants.js");
 
-var EVAL_CHAR;
+let EVAL_CHAR;
+const kREMOVED = -100;
 BETA = true;
 if (BETA) {
     EVAL_CHAR = "@";
@@ -42,7 +43,7 @@ if (BETA) {
 
 }
 
-const Evaluator = (function () {
+const Evaluator = function () {
     let object = null;
     let ctxt = null;
     const working = true;
@@ -123,26 +124,29 @@ const Evaluator = (function () {
         }
 
     };
-    this.remove = function () {
+    this.remove = function (params) {
+        let oid = params["oid"];
+        if (this.object.id() != oid) {
+            this.ctxt.markAndSweep["delete"] = this.ctxt.markAndSweep["delete"] || [];
+            this.ctxt.markAndSweep["delete"].push(this.object.id());
+            return kREMOVED;
+        }
     };
     this.withDuplicate = function (options, body) {
         const duplicate = this.duplicateAndFetch(options);
-        if (typeof body == "function")  exports.evaluateFunc(duplicate, body, ctxt);
-        if (options["once"]) {
-            debugger;
-            duplicate.note = duplicate.note() + evaluable("remove", {oid: duplicate.id()});
-            // duplicate.note.insert("asdf");// duplicate.note() + "yas";//evaluable(this.remove.name, {oid: duplicate.id()});
-        }
+        if (typeof body == "function") exports.evaluateFunc(duplicate, body, ctxt);
+        if (options["once"]) duplicate.note = duplicate.note() + evaluable("remove", {oid: duplicate.id()});
         return duplicate
     };
     // const tomorrow = () => moment("to");
     this.defer = function (options) {
         if (!this.guardIf(options)) {
-            let target = object;
             let {descendents, children, activeChildren} = options;
 
-            var passableOptions = {};
-            for (let k in options) if (!{descendents, children, activeChildren}[k]) passableOptions[k] = options[k];
+            let passableOptions = {};
+            for (let k in options)
+                if (!{descendents, children, activeChildren}[k]
+                    && options.hasOwnProperty(k)) passableOptions[k] = options[k];
 
             let {to, by, until, redate, cursor, once} = passableOptions;
 
@@ -201,16 +205,16 @@ const Evaluator = (function () {
     };
     this.pastDueChilderen = function (x) {
         const w = x || object;
-        var kids = [];
-        var childeren = object.tasks;
-        for (var i = 0; i < childeren.length; i++) {
-            var obj = childeren[i];
+        let kids = [];
+        let childeren = object.tasks();
+        for (let i = 0; i < childeren.length; i++) {
+            let obj = childeren[i];
         }
     };
 
     this.recurse = function () {
         let tmp = this.object;
-        _.each(tmp.tasks, (x) => {
+        _.each(tmp.tasks(), (x) => {
             exports.evaluateNote(x)
         });
         object = tmp
@@ -221,7 +225,7 @@ const Evaluator = (function () {
         return () => {
             return _.flatMap(this.object.tasks(), (x) => {
                 const ev = exports.evaluateFunc(x, fn, ctxt);
-                return ev ? [ev] : [];
+                return ev != null ? [ev] : [];
             });
         }
     };
@@ -234,11 +238,10 @@ const Evaluator = (function () {
 
     this.redate = function (cond, ...args) {
         if (cond === undefined || cond) {
-            // const overdues = pastDueChilderen();
-            var kids = object.tasks();
-            var cursor = moment();
-            for (var i = 0; i < kids.length; i++ && cursor.add(1, "day")) {
-                var obj = kids[i];
+            const kids = object.tasks();
+            let cursor = moment();
+            for (let i = 0; i < kids.length; i++ && cursor.add(1, "day")) {
+                let obj = kids[i];
                 obj.dueDate = moment(cursor).toDate();
             }
         }
@@ -287,7 +290,7 @@ const Evaluator = (function () {
             return eval("with(this) " + code);
         }).apply(this, [code]);
     };
-});
+};
 
 
 exports.cleanOutOldChecklists = function () {
@@ -297,12 +300,20 @@ function context(x) {
     return {
         me: x,
         requiresRecursion: false,
+        markAndSweep: {},
+        delete: function (xs) {
+            return _.each(xs, (x) => OFDoc.tasks.byId(x).delete())
+        },
         //will call the callback many times potentially. basically a do while on requresRecursion.
         evaluate: function (me, fn) {
             let returnable = null;
             do {
                 this.requiresRecursion = false;
                 returnable = fn(this);
+                for (let k in this.markAndSweep) if (this.markAndSweep.hasOwnProperty(k)) {
+                    this[k](this.markAndSweep[k]);
+                    this.markAndSweep[k] = null;
+                }
             } while (this.me == me && this.requiresRecursion);
             return returnable;
 
@@ -332,7 +343,9 @@ function evaluable(func, ...args) {
 
 // exports.projects = OFDoc.folders.whose({"name": "Checklists"}).at(0).projects.whose({completed:false})();
 function commands(obj) {
+    debugger;
     return _.map(_.filter(obj.note().split("\n"), function (x) {
+        if (x.length == 0) return false;
         return x.charAt(0) == EVAL_CHAR
     }), function (x) {
         return x.substr(1);
@@ -342,7 +355,7 @@ function commands(obj) {
 
 exports.evaluateProjects = function (ctxt) {
     (ctxt || context(this)).evaluate(this, function (ctxt) {
-        var projects = OFDoc.flattenedProjects.whose({completed: false})();
+        let projects = OFDoc.flattenedProjects.whose({completed: false})();
         // var projects = OFDoc.folders.whose({"name": "Checklists"}).at(0).projects.whose({completed: false})();
         _.each(projects, function (project) {
             exports.evaluateNote(project)
@@ -361,7 +374,10 @@ exports.evaluateNote = function (obj, ctxt) {
     (ctxt || context(this)).evaluate(this, function (ctxt) {
         _.each(commands(obj), function (x) {
             // try{
-            return (new Evaluator()).doEval(obj, x, ctxt);
+            const evaluated = (new Evaluator()).doEval(obj, x, ctxt);
+
+            // handles when you remove. Dont continue operating on a context that has a removed this.object
+            return evaluated == kREMOVED ? false : evaluated;
             // }catch (e){ console.log(e); }
         });
     });
@@ -371,13 +387,3 @@ exports.evaluateFunc = function (obj, func, ctxt) {
         return (new Evaluator()).doEval(obj, func, ctxt);
     });
 };
-
-// var projects = OFDoc.flattenedProjects.whose({completed})();
-// _.each(projects, function (project) {
-//     if (dueAWhileAgo(project) && obj.status() == "active") obj.completed = true;
-// });
-
-
-//     of_qe = of.quickEntry;
-//
-//debugger;
