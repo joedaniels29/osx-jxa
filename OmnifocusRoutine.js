@@ -29,17 +29,17 @@ requireLibrary("moment-range.js");
 
 const cwd = "/Users/Joe/Projects/Mine/osx-jxa/";
 const npm = cwd + "node_modules/";
-const TimeTask, RunLoop, runEvery;
+// const TimeTask, RunLoop, runEvery;
 const filters = require(cwd + "OmnifocusFilters.js");
 const {OF, OFDoc} = require(cwd + "OFConstants.js");
 
-let EVAL_CHAR;
+var EVAL_CHAR;
 const kREMOVED = -100;
 BETA = false;
 if (BETA) {
     EVAL_CHAR = "@";
 } else {
-    EVAL_CHAR = "#";
+    EVAL_CHAR = "&";
 
 }
 
@@ -183,10 +183,8 @@ const Evaluator = function () {
     };
 
     this.autoComplete = function (...args) {
-        if ((pastDue(object))
-            && isActive(object)) {
-            // if (args.length) {
-            // }
+        if (this.pastDue()
+            && this.isActive()) {
             object.completed = true;
             ctxt.requiresRecursion = true;
         }
@@ -238,7 +236,7 @@ const Evaluator = function () {
 
     this.redate = function (cond, ...args) {
         if (cond === undefined || cond) {
-            const kids = object.tasks();
+            const kids = this.object.tasks();
             let cursor = moment();
             for (let i = 0; i < kids.length; i++ && cursor.add(1, "day")) {
                 let obj = kids[i];
